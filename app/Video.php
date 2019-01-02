@@ -10,6 +10,11 @@ class Video extends Model
 
     public function comments()
     {
-        return $this->morphMany(Comment::class,'target_id');
+        return $this->morphMany(Comment::class,'target');
+    }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class,'taggable');
     }
 }

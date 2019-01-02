@@ -11,6 +11,7 @@
 |
 */
 use Illuminate\Http\Request;
+use Faker\Generator as Faker;
 
 Route::get('/', function () {
     return view('welcome');
@@ -76,4 +77,61 @@ Route::get('/throughbind', function(){
     \App\Country::create(['name'=>'中国']);
     \App\Country::create(['name'=>'美国']);
 });
+
+#多态关联
+Route::get('/morphmany', function(Faker $faker){
+    $targets = collect([
+        \App\Post::find(1),
+        \App\Post::find(2),
+        \App\Video::first(),
+        \App\Video::find(2),
+    ]);
+    for ( $i = 0; $i < 100; $i++ ) {
+        $target = $targets->random();
+        #绑定方式1
+        \App\Comment::create([
+            'body'          => $faker->sentence,
+            'target_id'     => $target->id,
+            'target_type'   => $target->getMorphClass()
+        ]);
+
+        #绑定方式2
+        //$post = \App\Post::create(['title'=>'我是一直快乐的小小鸟！']);
+        /*$post->comments()->createMany([
+            ['body' => '你就是个傻X'],
+            ['body' => '祝你快乐！'],
+        ]);*/
+
+        #绑定方式3
+        /*$post->comments()->saveMany([
+            new \App\Comment(['body' => '你就是个傻X']),
+            new \App\Comment(['body' => '祝你快乐！']),
+        ]);*/
+    }
+    dd('done');
+});
+
+#多对多多态关联
+Route::get('/morphtomany',function(){
+    $tags = collect([
+        \App\Tag::create(['name' => '牛掰']),
+        \App\Tag::create(['name' => '猛踩']),
+        \App\Tag::create(['name' => '谣言']),
+        \App\Tag::create(['name' => '精辟']),
+        \App\Tag::create(['name' => '垃圾']),
+        \App\Tag::create(['name' => '取关']),
+    ]);
+
+    $targets = collect([
+        \App\Post::find(1),
+        \App\Video::find(1),
+    ]);
+
+    $targets->each(function ($target) use ($tags){
+        $target->tags()->sync($tags->random(3)->pluck('id'));
+    });
+
+    dd('done');
+});
+
 
